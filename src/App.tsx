@@ -501,6 +501,9 @@ export default function App() {
   // ── WebSocket connection ──────────────────────────────────────────────────
 const connect = useCallback(() => {
     wsRef.current = null;
+    // 让游戏绕过联网，直接强行进入游戏阶段！
+    setPhase("game"); 
+    setError("");
 }, []);
 
   // ── Keyboard handling ─────────────────────────────────────────────────────
