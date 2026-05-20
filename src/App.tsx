@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 // ── Constants (must match server engine.ts) ──────────────────────────────────
 const TILE = 48, COLS = 15, ROWS = 13;
