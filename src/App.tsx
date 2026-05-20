@@ -499,62 +499,9 @@ export default function App() {
   }, [isMobile]);
 
   // ── WebSocket connection ──────────────────────────────────────────────────
-  const connect = useCallback(() => {
-    const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    // 下面这一行定义了一个空变量，防止后面报错
-const ws = null;
-wsRef.current = ws;
-
-// 只有在 ws 不为空的时候，才去绑定 onmessage
-if (ws) {
-    ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data) as Record<string, unknown>;
-      if (msg.type === "created") {
-        setPlayerNum(1); setRoomCode(msg.code as string);
-        setPhase("waiting"); setError("");
-      }
-      else if (msg.type === "joined") {
-        setPlayerNum(2); setPhase("game"); setError("");
-        stateRef.current = msg as unknown as GameState;
-      }
-      else if (msg.type === "start") {
-        setPhase("game"); setWinner(null); setRemoteVote(false);
-        stateRef.current = msg as unknown as GameState;
-        setChatMsgs([]); chatMsgsRef.current = [];
-        bubblesRef.current = { p1: null, p2: null };
-        lastDirRef.current = { p1:{ dx:0, dy:1 }, p2:{ dx:0, dy:-1 } };
-      }
-      else if (msg.type === "state") {
-        stateRef.current = msg as unknown as GameState;
-        const gs = stateRef.current;
-        // Update win counts
-        if (gs.gameOver) {
-          setWins([gs.p1.wins, gs.p2.wins]);
-          setWinner(gs.winner);
-          setPhase("gameover");
-        }
-        // Collect events → flashes
-        if (gs.collectEvents?.length) {
-          for (const ev of gs.collectEvents) {
-            flashesRef.current.push({ col:ev.col, row:ev.row, timer:0.6, maxTimer:0.6 });
-          }
-        }
-      }
-      else if (msg.type === "chat") {
-        const cm: ChatMsg = { playerNum: msg.playerNum as 1|2, text: msg.text as string, ts: Date.now() };
-        chatMsgsRef.current = [...chatMsgsRef.current, cm];
-        setChatMsgs([...chatMsgsRef.current]);
-        // Speech bubble
-        const key = msg.playerNum === 1 ? "p1" : "p2";
-        bubblesRef.current[key] = { text: msg.text as string, timer: BUBBLE_LIFE };
-      }
-      else if (msg.type === "error")    { setError(msg.msg as string); }
-      else if (msg.type === "rematch_vote") { setRemoteVote(true); }
-      else if (msg.type === "opponent_disconnected") { setPhase("disconnected"); }
-    };
-
-    ws.onerror = () => setError("连接失败，请刷新重试");
-  }, []);
+const connect = useCallback(() => {
+    wsRef.current = null;
+}, []);
 
   // ── Keyboard handling ─────────────────────────────────────────────────────
   useEffect(() => {
