@@ -501,7 +501,7 @@ export default function App() {
   // ── WebSocket connection ──────────────────────────────────────────────────
   const connect = useCallback(() => {
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${proto}//${location.host}/api/ws`);
+    //const ws = new WebSocket(`${proto}//${location.host}/api/ws`);
     wsRef.current = ws;
 
     ws.onmessage = (e) => {
