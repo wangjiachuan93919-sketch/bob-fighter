@@ -501,8 +501,71 @@ export default function App() {
   // ── WebSocket connection ──────────────────────────────────────────────────
 const connect = useCallback(() => {
     wsRef.current = null;
-    // 让游戏绕过联网，直接强行进入游戏阶段！
-    setPhase("game"); 
+
+    // --- 在这里，我们手工作为一个电影制片厂，给单机模式建立一套“假”的游戏场景 ---
+
+    // 1. 我们建立一个简易的 13x13 炸弹人地图模型（0表示空地，1表示硬墙）
+    const gridSize = 13;
+    const mapData = Array.from({ length: gridSize }, (_, y) =>
+        Array.from({ length: gridSize }, (_, x) => {
+            // 地图最外圈是硬墙
+            if (x === 0 || y === 0 || x === gridSize - 1 || y === gridSize - 1) return 1; 
+            // 内部每隔一个格子是一个硬墙（炸弹人标准地形）
+            if (x % 2 === 0 && y % 2 === 0) return 1; 
+            return 0; // 内部其余格子是空地
+        })
+    );
+
+    // 2. 我们建立 P1 的初始数据模型（位置在坐标 (1, 1)，活着，有1个HP）
+    const p1Data = {
+        id: "P1", name: "P1",
+        x: 1, y: 1,
+        hp: 3, alive: true,
+        bombCount: 1, bombMax: 1, bombRange: 2,
+        direction: "down", moving: false,
+        color: "#ff0000",
+        canKick: false, canPush: false,
+        lastMove: 0,
+    };
+
+    // 3. 我们建立 P2 的默认模型（因为UI需要读取，哪怕它在单机里是个死人。位置在 coordinates (11, 11)）
+    const p2Data = {
+        id: "P2", name: "P2",
+        x: 11, y: 11,
+        hp: 1, alive: false,
+        bombCount: 0, bombMax: 0, bombRange: 0,
+        direction: "down", moving: false,
+        color: "#aaaaaa",
+        canKick: false, canPush: false,
+        lastMove: 0,
+    };
+
+    // 4. 我们把以上所有零散的模型，拼装成 React 期待接收的完整的、规范的 GameState 数据结构
+    const defaultState = {
+        phase: 'game',
+        timeLimit: 120, // 120 seconds
+        p1score: 0,
+        p2score: 0,
+        config: {
+            gridSize: gridSize, maxPlayers: 2, initialHP: 3, maxTime: 120,
+            bombExplosionTime: 3000, powerupDuration: 5000, powerupsEnabled: true,
+            botsEnabled: false, suddenDeathTime: 30, suddenDeathInterval: 500,
+            allowKickingBombs: true, allowPushingPlayers: true, botDifficulty: 1
+        },
+        players: {
+            "P1": p1Data as any,
+            "P2": p2Data as any,
+        },
+        map: mapData,
+        bombs: [],
+        explosions: [],
+    };
+
+    // 5. 将这个我们手写的、完整的场景模型，正式填入 `stateRef.current` 这个数据仓库里
+    stateRef.current = defaultState as any; // 这里是关键：我们手动初始化了游戏数据
+
+    // 6. 最后，当电影制片厂确认场景已经建好了，我们才撬开大门，游戏就会瞬间崩出来了！
+    setPhase("game");
     setError("");
 }, []);
 
