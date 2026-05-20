@@ -501,12 +501,14 @@ export default function App() {
   // ── WebSocket connection ──────────────────────────────────────────────────
   const connect = useCallback(() => {
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    //const ws = new WebSocket(`${proto}//${location.host}/api/ws`);
-    wsRef.current = ws;
+    // 下面这一行定义了一个空变量，防止后面报错
+const ws = null;
+wsRef.current = ws;
 
+// 只有在 ws 不为空的时候，才去绑定 onmessage
+if (ws) {
     ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data) as Record<string, unknown>;
-
+        const msg = JSON.parse(e.data) as Record<string, unknown>;
       if (msg.type === "created") {
         setPlayerNum(1); setRoomCode(msg.code as string);
         setPhase("waiting"); setError("");
